@@ -16,8 +16,9 @@
       --accent-light: #A78BFA;
       --gold:         #F59E0B;
       --red:          #EF4444;
-      --text:         #e8e4f0;
-      --muted:        rgba(232,228,240,0.45);
+      --text:         #E8E8F0;
+      --muted:        rgba(232,232,240,0.65);
+      --micro:        #8080A0;
       --border-dim:   rgba(255,255,255,0.06);
       --border-accent:rgba(124,58,237,0.15);
     }
@@ -179,7 +180,7 @@
 
     .chip-x {
       font-size: 0.8rem;
-      color: rgba(232,228,240,0.35);
+      color: rgba(232,232,240,0.65);
       line-height: 1;
       margin-left: 2px;
     }
@@ -270,7 +271,7 @@
       font-size: 0.58rem;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--micro);
       margin-bottom: 3px;
     }
 
@@ -314,7 +315,7 @@
       font-size: 0.58rem;
       letter-spacing: 0.24em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--micro);
       margin-bottom: 2px;
     }
 
@@ -371,15 +372,14 @@
       font-size: 0.54rem;
       letter-spacing: 0.26em;
       text-transform: uppercase;
-      color: rgba(232,228,240,0.28);
+      color: var(--micro);
       margin-bottom: 8px;
     }
 
     .history-entry {
       font-family: 'DM Mono','Roboto Mono','Courier New', monospace;
       font-size: 0.62rem;
-      color: var(--muted);
-      opacity: 0.45;
+      color: #A0A0B8;
       padding: 3px 0;
       white-space: nowrap;
       overflow: hidden;
@@ -440,6 +440,88 @@
       line-height: 1;
     }
 
+    /* ── BONUS ROW ──────────────────────────────────────────── */
+
+    .bonus-wrap {
+      flex-shrink: 0;
+      overflow: hidden;
+      height: 0;
+      transition: height 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bonus-wrap.is-visible { height: 56px; }
+
+    .bonus-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      height: 56px;
+      padding: 0 20px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 280ms ease-out, transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bonus-wrap.is-visible .bonus-row {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .bonus-line {
+      flex: 1;
+      height: 1px;
+      max-width: 50px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .bonus-label {
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--micro);
+    }
+
+    .bonus-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 140ms;
+    }
+
+    .bonus-btn:hover, .bonus-btn:active { color: var(--accent-light); }
+
+    .bonus-num {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 22px;
+      min-width: 48px;
+      text-align: center;
+      color: var(--micro);
+      transition: color 200ms;
+    }
+
+    .bonus-num.is-positive { color: var(--accent-light); }
+    .bonus-num.is-negative { color: var(--red); }
+
+    /* Total formula line (shown when bonus ≠ 0) */
+
+    .total-formula {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 0.76rem;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+
     /* ── FLASH OVERLAY ─────────────────────────────────────── */
 
     #flash {
@@ -498,6 +580,7 @@
         <div class="results-row" id="resultsRow" role="list" aria-label="Resultados da rolagem"></div>
         <div class="total-section hidden" id="totalSection">
           <div class="total-label">total</div>
+          <div class="total-formula hidden" id="totalFormula" aria-hidden="true"></div>
           <div class="total-value" id="totalValue" aria-live="polite"></div>
           <div class="action-row">
             <button class="ghost-btn" id="btnNew" aria-label="Nova rolagem">← Nova Rolagem</button>
@@ -515,6 +598,18 @@
     </section>
 
   </main>
+
+  <!-- ── BONUS ROW ─────────────────────────────────────────── -->
+  <div class="bonus-wrap" id="bonusWrap" aria-hidden="true">
+    <div class="bonus-row" id="bonusRow">
+      <span class="bonus-line"></span>
+      <span class="bonus-label">Bônus</span>
+      <button class="bonus-btn" id="bonusDec" aria-label="Diminuir bônus">−</button>
+      <span class="bonus-num" id="bonusNum">0</span>
+      <button class="bonus-btn" id="bonusInc" aria-label="Aumentar bônus">+</button>
+      <span class="bonus-line"></span>
+    </div>
+  </div>
 
   <!-- ── DICE BAR ───────────────────────────────────────────── -->
   <div class="dice-bar" role="toolbar" aria-label="Barra de dados">
@@ -634,10 +729,13 @@ function makeSVG(type, size) {
 
 let queue        = [];   // {type, max, uid}
 let lastQueue    = null; // for re-roll
-let history      = [];   // formatted strings
+let history      = [];   // formatted HTML strings
 let appPhase     = 'empty'; // 'empty' | 'queue' | 'result'
 let rollTimers   = [];
 let uidCounter   = 0;
+let bonus        = 0;
+const BONUS_MIN  = -10;
+const BONUS_MAX  = 20;
 
 function newUid() { return ++uidCounter; }
 
@@ -655,6 +753,9 @@ const totalValue   = $('totalValue');
 const historySection = $('historySection');
 const historyList    = $('historyList');
 const flashEl        = $('flash');
+const bonusWrap      = $('bonusWrap');
+const bonusNum       = $('bonusNum');
+const totalFormula   = $('totalFormula');
 
 // ── PHASE MANAGEMENT ───────────────────────────────────────────
 
@@ -665,6 +766,24 @@ function setPhase(phase) {
   stateResult.classList.toggle('hidden', phase !== 'result');
 }
 
+// ── BONUS ──────────────────────────────────────────────────────
+
+function updateBonusNum() {
+  bonusNum.textContent = bonus === 0 ? '0'
+    : bonus > 0 ? '+' + bonus
+    : '−' + Math.abs(bonus);
+  bonusNum.className = 'bonus-num'
+    + (bonus > 0 ? ' is-positive' : bonus < 0 ? ' is-negative' : '');
+}
+
+function changeBonus(delta) {
+  const next = Math.max(BONUS_MIN, Math.min(BONUS_MAX, bonus + delta));
+  if (next === bonus) return;
+  bonus = next;
+  updateBonusNum();
+  if (appPhase === 'queue') renderChips();
+}
+
 // ── ADD / REMOVE DICE ──────────────────────────────────────────
 
 function addDie(type, max) {
@@ -673,18 +792,26 @@ function addDie(type, max) {
     return;
   }
 
-  // Coming from result — start fresh
+  // Coming from result — start fresh queue
   if (appPhase === 'result') {
     clearAllTimers();
     queue = [];
     resultsRow.innerHTML = '';
     totalSection.classList.add('hidden');
+    totalFormula.classList.add('hidden');
     chipsRow.innerHTML = '';
   }
 
+  const firstDie = queue.length === 0;
   queue.push({ type, max, uid: newUid() });
   setPhase('queue');
   renderChips();
+
+  // Animate bonus row in on first die (only if not already visible)
+  if (firstDie && !bonusWrap.classList.contains('is-visible')) {
+    bonusWrap.classList.add('is-visible');
+    bonusWrap.removeAttribute('aria-hidden');
+  }
 }
 
 function removeDie(uid) {
@@ -710,6 +837,21 @@ function renderChips() {
     el.addEventListener('click', () => removeDie(die.uid));
     chipsRow.appendChild(el);
   });
+
+  // Bonus chip (no × — adjusted via bonus row)
+  if (bonus !== 0) {
+    const isPos = bonus > 0;
+    const bChip = document.createElement('div');
+    bChip.className = 'chip';
+    bChip.setAttribute('role', 'listitem');
+    bChip.setAttribute('aria-label', `Bônus ${isPos ? '+' : '−'}${Math.abs(bonus)}`);
+    bChip.style.borderColor = isPos ? 'rgba(124,58,237,0.4)' : 'rgba(239,68,68,0.4)';
+    bChip.style.background  = isPos ? 'rgba(124,58,237,0.08)' : 'rgba(239,68,68,0.08)';
+    bChip.style.cursor = 'default';
+    const col = isPos ? 'var(--accent-light)' : 'var(--red)';
+    bChip.innerHTML = `<span class="chip-label" style="color:${col}">${isPos ? '+' : '−'}${Math.abs(bonus)}</span>`;
+    chipsRow.appendChild(bChip);
+  }
 }
 
 // ── ROLL ───────────────────────────────────────────────────────
@@ -744,6 +886,21 @@ function rollAll() {
     resultsRow.appendChild(card);
   });
 
+  // Bonus result card — instant value, no slot machine
+  if (bonus !== 0) {
+    const bCard = document.createElement('div');
+    bCard.className = 'result-card';
+    bCard.setAttribute('role', 'listitem');
+    const isPos = bonus > 0;
+    const col  = isPos ? 'var(--accent-light)' : 'var(--red)';
+    const sign = isPos ? '+' : '−';
+    bCard.innerHTML =
+      `<span class="res-type">Bônus</span>` +
+      `<span class="res-value" style="color:${col}">${sign}${Math.abs(bonus)}</span>` +
+      `<span class="res-tag"></span>`;
+    resultsRow.appendChild(bCard);
+  }
+
   // Animate slot machine per die
   let lockedCount = 0;
 
@@ -773,9 +930,21 @@ function rollAll() {
 }
 
 function onAllLocked(results) {
-  // Total
-  const total = results.reduce((s, r) => s + r.value, 0);
-  totalValue.textContent = total;
+  const diceTotal  = results.reduce((s, r) => s + r.value, 0);
+  const grandTotal = diceTotal + bonus;
+
+  // Bonus formula line
+  if (bonus !== 0) {
+    const op  = bonus > 0 ? '+' : '−';
+    const col = bonus > 0 ? 'var(--accent-light)' : 'var(--red)';
+    totalFormula.innerHTML = `${diceTotal} <span style="color:${col}">${op}${Math.abs(bonus)}</span> = ${grandTotal}`;
+    totalFormula.classList.remove('hidden');
+  } else {
+    totalFormula.classList.add('hidden');
+  }
+
+  totalValue.textContent = grandTotal;
+
   // Re-trigger animation
   totalSection.classList.remove('hidden');
   void totalSection.offsetWidth;
@@ -850,7 +1019,13 @@ function doNewRoll() {
   resultsRow.innerHTML = '';
   chipsRow.innerHTML   = '';
   totalSection.classList.add('hidden');
+  totalFormula.classList.add('hidden');
   setPhase('empty');
+  // Reset bonus and hide row
+  bonus = 0;
+  updateBonusNum();
+  bonusWrap.classList.remove('is-visible');
+  bonusWrap.setAttribute('aria-hidden', 'true');
 }
 
 function doReroll() {
@@ -865,13 +1040,21 @@ function doReroll() {
 // ── HISTORY ────────────────────────────────────────────────────
 
 function pushHistory(results) {
-  // Summarise dice counts
   const counts = {};
   results.forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
-  const diceStr  = Object.entries(counts).map(([t, n]) => `${n}× ${t}`).join(' + ');
-  const valsStr  = results.map(r => r.value).join(', ');
-  const total    = results.reduce((s, r) => s + r.value, 0);
-  const line     = `${diceStr}   →   ${valsStr}   =   ${total}`;
+  const diceStr   = Object.entries(counts).map(([t, n]) => `${n}× ${t}`).join(' + ');
+  const valsStr   = results.map(r => r.value).join(', ');
+  const diceTotal = results.reduce((s, r) => s + r.value, 0);
+  const grandTotal = diceTotal + bonus;
+
+  let bonusPart = '';
+  if (bonus !== 0) {
+    const col = bonus > 0 ? 'var(--accent-light)' : 'var(--red)';
+    const op  = bonus > 0 ? '+' : '−';
+    bonusPart = ` + bônus <span style="color:${col}">${op}${Math.abs(bonus)}</span>`;
+  }
+
+  const line = `${diceStr}${bonusPart}   →   ${valsStr}   =   ${grandTotal}`;
 
   history.unshift(line);
   if (history.length > 5) history.length = 5;
@@ -888,14 +1071,13 @@ function renderHistory() {
   history.forEach((line, i) => {
     const el = document.createElement('div');
     el.className = 'history-entry';
-    el.textContent = line;
-    // Only animate the newest entry
+    el.innerHTML = line;
+    // Re-trigger entrance animation only for newest entry
     if (i === 0) {
       el.style.animation = 'none';
       void el.offsetWidth;
       el.style.animation = '';
     } else {
-      el.style.opacity = '0.45';
       el.style.animation = 'none';
     }
     historyList.appendChild(el);
@@ -926,9 +1108,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Roll / action buttons
-  rollBtn   .addEventListener('click', rollAll);
-  $('btnNew')   .addEventListener('click', doNewRoll);
-  $('btnReroll').addEventListener('click', doReroll);
+  rollBtn           .addEventListener('click', rollAll);
+  $('btnNew')       .addEventListener('click', doNewRoll);
+  $('btnReroll')    .addEventListener('click', doReroll);
+  $('bonusInc')     .addEventListener('click', () => changeBonus(+1));
+  $('bonusDec')     .addEventListener('click', () => changeBonus(-1));
 
   // Staggered entrance for dice bar icons
   const dbtns = document.querySelectorAll('.dice-btn');
