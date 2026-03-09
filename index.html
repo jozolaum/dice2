@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dado Arcano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #0d0d0f;
+      --bg-bar:       #0f0f12;
+      --bg-card:      rgba(255,255,255,0.03);
+      --accent:       #7C3AED;
+      --accent-light: #A78BFA;
+      --gold:         #F59E0B;
+      --red:          #EF4444;
+      --text:         #e8e4f0;
+      --muted:        rgba(232,228,240,0.45);
+      --border-dim:   rgba(255,255,255,0.06);
+      --border-accent:rgba(124,58,237,0.15);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+    }
+
+    /* ── APP SHELL ─────────────────────────────────────────── */
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+
+    .header {
+      flex-shrink: 0;
+      padding: 22px 20px 10px;
+      text-align: center;
+    }
+
+    .header-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .header-title .arcano {
+      color: var(--accent-light);
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    .header-sub {
+      margin-top: 5px;
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(167,139,250,0.35);
+      font-weight: 400;
+    }
+
+    /* ── SCROLLABLE MAIN ───────────────────────────────────── */
+
+    .scroll-area {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px 12px;
+    }
+
+    /* ── QUEUE / RESULT CONTAINER ──────────────────────────── */
+
+    .queue-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      min-height: 200px;
+    }
+
+    /* ── EMPTY STATE ───────────────────────────────────────── */
+
+    .state-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .empty-hint {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: breathe 3.2s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%,100% { opacity: 0.3; }
+      50%      { opacity: 0.65; }
+    }
+
+    /* ── QUEUE STATE ───────────────────────────────────────── */
+
+    .state-queue {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px 6px 8px;
+      background: rgba(124,58,237,0.10);
+      border: 1px solid rgba(124,58,237,0.28);
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 36px;
+      min-width: 44px;
+      animation: chip-in 180ms ease-out both;
+      transition: background 180ms, border-color 180ms;
+    }
+
+    .chip:hover, .chip:active {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.45);
+    }
+
+    @keyframes chip-in {
+      from { opacity: 0; transform: scale(0.82) translateY(5px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);   }
+    }
+
+    .chip svg {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      color: var(--accent-light);
+    }
+
+    .chip-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: var(--accent-light);
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .chip-x {
+      font-size: 0.8rem;
+      color: rgba(232,228,240,0.35);
+      line-height: 1;
+      margin-left: 2px;
+    }
+
+    /* Roll button */
+
+    .roll-btn {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 22px auto 0;
+      padding: 15px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      min-height: 50px;
+      animation: fade-up 240ms ease-out both;
+      transition: background 160ms, transform 120ms;
+    }
+
+    .roll-btn:hover   { background: #6D28D9; }
+    .roll-btn:active  { transform: scale(0.97); }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(7px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+
+    /* ── RESULT STATE ──────────────────────────────────────── */
+
+    .state-result {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .results-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .result-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 9px;
+      padding: 10px 14px 8px;
+      min-width: 68px;
+      animation: card-in 220ms ease-out both;
+      transition: border-color 300ms, box-shadow 300ms, background 180ms, transform 180ms;
+      cursor: default;
+    }
+
+    .result-card:hover {
+      border-color: rgba(124,58,237,0.6);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: inset 0 0 12px rgba(124,58,237,0.15);
+    }
+
+    .result-card.is-critical {
+      border-color: var(--gold);
+      box-shadow: inset 0 0 14px rgba(245,158,11,0.18);
+    }
+
+    .result-card.is-fail {
+      border-color: var(--red);
+      box-shadow: inset 0 0 14px rgba(239,68,68,0.18);
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(9px) scale(0.94); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    .res-type {
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .res-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--text);
+      display: block;
+      transition: transform 100ms ease-out, color 280ms;
+      min-width: 1.8ch;
+      text-align: center;
+    }
+
+    .result-card.is-critical .res-value { color: var(--gold); }
+    .result-card.is-fail     .res-value { color: var(--red);  }
+
+    .res-tag {
+      font-size: 0.52rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 5px;
+      min-height: 0.7em;
+      line-height: 1;
+    }
+
+    .result-card.is-critical .res-tag { color: var(--gold); }
+    .result-card.is-fail     .res-tag { color: var(--red);  }
+
+    /* Total */
+
+    .total-section {
+      text-align: center;
+      margin-top: 22px;
+      animation: fade-up 320ms ease-out both;
+    }
+
+    .total-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .total-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.8rem;
+      font-weight: 600;
+      color: var(--accent-light);
+      line-height: 1.05;
+    }
+
+    /* Ghost action buttons */
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 16px;
+      animation: fade-up 300ms 80ms ease-out both;
+    }
+
+    .ghost-btn {
+      flex: 1;
+      max-width: 162px;
+      min-height: 44px;
+      padding: 9px 10px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border-dim);
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.64rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 160ms, color 160ms;
+    }
+
+    .ghost-btn:hover, .ghost-btn:active {
+      border-color: rgba(167,139,250,0.4);
+      color: var(--accent-light);
+    }
+
+    /* ── HISTORY ───────────────────────────────────────────── */
+
+    .history-section {
+      flex-shrink: 0;
+      margin-top: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-dim);
+    }
+
+    .history-title {
+      font-size: 0.54rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(232,228,240,0.28);
+      margin-bottom: 8px;
+    }
+
+    .history-entry {
+      font-family: 'DM Mono','Roboto Mono','Courier New', monospace;
+      font-size: 0.62rem;
+      color: var(--muted);
+      opacity: 0.45;
+      padding: 3px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      animation: fade-up 280ms ease-out both;
+    }
+
+    /* ── DICE BAR ──────────────────────────────────────────── */
+
+    .dice-bar {
+      flex-shrink: 0;
+      background: var(--bg-bar);
+      border-top: 1px solid rgba(124,58,237,0.12);
+      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .dice-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .dice-row:last-child { margin-bottom: 0; }
+
+    .dice-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      min-height: 72px;
+      min-width: 52px;
+      flex: 1;
+      max-width: 78px;
+      color: rgba(232,228,240,0.65);
+      transition: background 150ms, color 150ms, transform 120ms ease-out;
+      padding: 6px 4px;
+    }
+
+    .dice-btn:hover  { background: rgba(124,58,237,0.08); color: rgba(232,228,240,0.9); }
+    .dice-btn:active { transform: scale(0.9); background: rgba(124,58,237,0.13); }
+
+    .dice-btn svg {
+      width: 36px; height: 36px;
+      pointer-events: none;
+    }
+
+    .dice-btn-label {
+      font-size: 13px;
+      color: rgba(167,139,250,0.9);
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    /* ── FLASH OVERLAY ─────────────────────────────────────── */
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      background: var(--gold);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 999;
+      transition: opacity 200ms ease;
+    }
+
+    /* ── UTILITIES ─────────────────────────────────────────── */
+
+    .hidden { display: none !important; }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      15%      { transform: translateX(-5px); }
+      35%      { transform: translateX(5px); }
+      55%      { transform: translateX(-3px); }
+      75%      { transform: translateX(3px); }
+    }
+
+    .shaking { animation: shake 300ms ease-in-out; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="header" aria-label="Dado Arcano">
+    <div class="header-title">DADO <span class="arcano">ARCANO</span></div>
+    <div class="header-sub">◆ arcano ◆</div>
+  </header>
+
+  <!-- ── SCROLLABLE MAIN ────────────────────────────────────── -->
+  <main class="scroll-area">
+
+    <div class="queue-container" id="queueContainer">
+
+      <!-- Empty -->
+      <div class="state-empty" id="stateEmpty">
+        <span class="empty-hint">selecione os dados abaixo</span>
+      </div>
+
+      <!-- Queue -->
+      <div class="state-queue hidden" id="stateQueue">
+        <div class="chips-row" id="chipsRow" role="list" aria-label="Dados na fila"></div>
+        <button class="roll-btn" id="rollBtn" aria-label="Rolar dados selecionados">ROLAR</button>
+      </div>
+
+      <!-- Result -->
+      <div class="state-result hidden" id="stateResult">
+        <div class="results-row" id="resultsRow" role="list" aria-label="Resultados da rolagem"></div>
+        <div class="total-section hidden" id="totalSection">
+          <div class="total-label">total</div>
+          <div class="total-value" id="totalValue" aria-live="polite"></div>
+          <div class="action-row">
+            <button class="ghost-btn" id="btnNew" aria-label="Nova rolagem">← Nova Rolagem</button>
+            <button class="ghost-btn" id="btnReroll" aria-label="Rerolar mesmos dados">↺ Rerolar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- History -->
+    <section class="history-section hidden" id="historySection" aria-label="Histórico de rolagens">
+      <div class="history-title">Histórico</div>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <!-- ── DICE BAR ───────────────────────────────────────────── -->
+  <div class="dice-bar" role="toolbar" aria-label="Barra de dados">
+    <div class="dice-row">
+      <button class="dice-btn" data-type="D4"   data-max="4"   aria-label="Adicionar D4">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <polygon points="50,8 92,78 8,78"/>
+          <line x1="50" y1="8"  x2="50" y2="78"/>
+          <line x1="8"  y1="78" x2="71" y2="43"/>
+          <line x1="92" y1="78" x2="29" y2="43"/>
+        </svg>
+        <span class="dice-btn-label">D4</span>
+      </button>
+      <button class="dice-btn" data-type="D6"   data-max="6"   aria-label="Adicionar D6">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <polygon points="50,12 82,30 50,48 18,30"/>
+          <polygon points="18,30 50,48 50,86 18,68"/>
+          <polygon points="82,30 50,48 50,86 82,68"/>
+        </svg>
+        <span class="dice-btn-label">D6</span>
+      </button>
+      <button class="dice-btn" data-type="D8"   data-max="8"   aria-label="Adicionar D8">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <polygon points="50,8 85,52 15,52"/>
+          <polygon points="50,92 85,52 15,52"/>
+          <line x1="50" y1="8"  x2="50" y2="52"/>
+          <line x1="50" y1="92" x2="50" y2="52"/>
+        </svg>
+        <span class="dice-btn-label">D8</span>
+      </button>
+      <button class="dice-btn" data-type="D10"  data-max="10"  aria-label="Adicionar D10">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <line x1="50" y1="8"  x2="78" y2="38"/>
+          <line x1="50" y1="8"  x2="88" y2="58"/>
+          <line x1="50" y1="8"  x2="50" y2="68"/>
+          <line x1="50" y1="8"  x2="12" y2="58"/>
+          <line x1="50" y1="8"  x2="22" y2="38"/>
+          <polygon points="22,38 78,38 88,58 50,68 12,58"/>
+          <line x1="22" y1="38" x2="50" y2="92"/>
+          <line x1="78" y1="38" x2="50" y2="92"/>
+          <line x1="88" y1="58" x2="50" y2="92"/>
+          <line x1="50" y1="68" x2="50" y2="92"/>
+          <line x1="12" y1="58" x2="50" y2="92"/>
+        </svg>
+        <span class="dice-btn-label">D10</span>
+      </button>
+    </div>
+    <div class="dice-row">
+      <button class="dice-btn" data-type="D12"  data-max="12"  aria-label="Adicionar D12">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <polygon points="50,8 72,14 88,32 88,58 72,76 50,82 28,76 12,58 12,32 28,14"/>
+          <polygon points="50,22 66,34 60,54 40,54 34,34"/>
+        </svg>
+        <span class="dice-btn-label">D12</span>
+      </button>
+      <button class="dice-btn" data-type="D20"  data-max="20"  aria-label="Adicionar D20">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <polygon points="25,9 75,9 96,50 75,91 25,91 4,50"/>
+          <line x1="50" y1="9"  x2="4"  y2="50"/>
+          <line x1="50" y1="9"  x2="96" y2="50"/>
+          <line x1="50" y1="9"  x2="50" y2="91"/>
+          <line x1="50" y1="91" x2="25" y2="9"/>
+          <line x1="50" y1="91" x2="75" y2="9"/>
+          <line x1="4"  y1="50" x2="75" y2="91"/>
+          <line x1="96" y1="50" x2="25" y2="91"/>
+        </svg>
+        <span class="dice-btn-label">D20</span>
+      </button>
+      <button class="dice-btn" data-type="D100" data-max="100" aria-label="Adicionar D100">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+          <circle cx="50" cy="50" r="40"/>
+          <circle cx="50" cy="50" r="28"/>
+          <line x1="50" y1="10" x2="50" y2="22"/>
+          <line x1="50" y1="78" x2="50" y2="90"/>
+          <line x1="10" y1="50" x2="22" y2="50"/>
+          <line x1="78" y1="50" x2="90" y2="50"/>
+          <line x1="22" y1="22" x2="30" y2="30"/>
+          <line x1="78" y1="22" x2="70" y2="30"/>
+          <line x1="22" y1="78" x2="30" y2="70"/>
+          <line x1="78" y1="78" x2="70" y2="70"/>
+        </svg>
+        <span class="dice-btn-label">D100</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Gold flash overlay -->
+<div id="flash" aria-hidden="true"></div>
+
+<!-- ── SCRIPTS ─────────────────────────────────────────────── -->
+<script>
+'use strict';
+
+// ── CONSTANTS ──────────────────────────────────────────────────
+
+const ANIM_STEPS  = [40, 60, 90, 130, 180, 240, 320, 420, 560];
+const MAX_QUEUE   = 10;
+const STAGGER_MS  = 300;
+
+const SVG_INNER = {
+  D4:   `<polygon points="50,8 92,78 8,78"/><line x1="50" y1="8" x2="50" y2="78"/><line x1="8" y1="78" x2="71" y2="43"/><line x1="92" y1="78" x2="29" y2="43"/>`,
+  D6:   `<polygon points="50,12 82,30 50,48 18,30"/><polygon points="18,30 50,48 50,86 18,68"/><polygon points="82,30 50,48 50,86 82,68"/>`,
+  D8:   `<polygon points="50,8 85,52 15,52"/><polygon points="50,92 85,52 15,52"/><line x1="50" y1="8" x2="50" y2="52"/><line x1="50" y1="92" x2="50" y2="52"/>`,
+  D10:  `<line x1="50" y1="8" x2="78" y2="38"/><line x1="50" y1="8" x2="88" y2="58"/><line x1="50" y1="8" x2="50" y2="68"/><line x1="50" y1="8" x2="12" y2="58"/><line x1="50" y1="8" x2="22" y2="38"/><polygon points="22,38 78,38 88,58 50,68 12,58"/><line x1="22" y1="38" x2="50" y2="92"/><line x1="78" y1="38" x2="50" y2="92"/><line x1="88" y1="58" x2="50" y2="92"/><line x1="50" y1="68" x2="50" y2="92"/><line x1="12" y1="58" x2="50" y2="92"/>`,
+  D12:  `<polygon points="50,8 72,14 88,32 88,58 72,76 50,82 28,76 12,58 12,32 28,14"/><polygon points="50,22 66,34 60,54 40,54 34,34"/>`,
+  D20:  `<polygon points="25,9 75,9 96,50 75,91 25,91 4,50"/><line x1="50" y1="9" x2="4" y2="50"/><line x1="50" y1="9" x2="96" y2="50"/><line x1="50" y1="9" x2="50" y2="91"/><line x1="50" y1="91" x2="25" y2="9"/><line x1="50" y1="91" x2="75" y2="9"/><line x1="4" y1="50" x2="75" y2="91"/><line x1="96" y1="50" x2="25" y2="91"/>`,
+  D100: `<circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="28"/><line x1="50" y1="10" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="90"/><line x1="10" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="30" y2="30"/><line x1="78" y1="22" x2="70" y2="30"/><line x1="22" y1="78" x2="30" y2="70"/><line x1="78" y1="78" x2="70" y2="70"/>`,
+};
+
+function makeSVG(type, size) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">${SVG_INNER[type] || ''}</svg>`;
+}
+
+// ── STATE ──────────────────────────────────────────────────────
+
+let queue        = [];   // {type, max, uid}
+let lastQueue    = null; // for re-roll
+let history      = [];   // formatted strings
+let appPhase     = 'empty'; // 'empty' | 'queue' | 'result'
+let rollTimers   = [];
+let uidCounter   = 0;
+
+function newUid() { return ++uidCounter; }
+
+// ── DOM REFS ───────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+const stateEmpty   = $('stateEmpty');
+const stateQueue   = $('stateQueue');
+const stateResult  = $('stateResult');
+const chipsRow     = $('chipsRow');
+const rollBtn      = $('rollBtn');
+const resultsRow   = $('resultsRow');
+const totalSection = $('totalSection');
+const totalValue   = $('totalValue');
+const historySection = $('historySection');
+const historyList    = $('historyList');
+const flashEl        = $('flash');
+
+// ── PHASE MANAGEMENT ───────────────────────────────────────────
+
+function setPhase(phase) {
+  appPhase = phase;
+  stateEmpty .classList.toggle('hidden', phase !== 'empty');
+  stateQueue .classList.toggle('hidden', phase !== 'queue');
+  stateResult.classList.toggle('hidden', phase !== 'result');
+}
+
+// ── ADD / REMOVE DICE ──────────────────────────────────────────
+
+function addDie(type, max) {
+  if (queue.length >= MAX_QUEUE) {
+    shakeDiceBar();
+    return;
+  }
+
+  // Coming from result — start fresh
+  if (appPhase === 'result') {
+    clearAllTimers();
+    queue = [];
+    resultsRow.innerHTML = '';
+    totalSection.classList.add('hidden');
+    chipsRow.innerHTML = '';
+  }
+
+  queue.push({ type, max, uid: newUid() });
+  setPhase('queue');
+  renderChips();
+}
+
+function removeDie(uid) {
+  queue = queue.filter(d => d.uid !== uid);
+  if (queue.length === 0) {
+    setPhase('empty');
+  } else {
+    renderChips();
+  }
+}
+
+function renderChips() {
+  chipsRow.innerHTML = '';
+  queue.forEach(die => {
+    const el = document.createElement('div');
+    el.className = 'chip';
+    el.setAttribute('role', 'listitem');
+    el.setAttribute('aria-label', `${die.type} — toque para remover`);
+    el.innerHTML =
+      makeSVG(die.type, 18) +
+      `<span class="chip-label">${die.type}</span>` +
+      `<span class="chip-x" aria-hidden="true">×</span>`;
+    el.addEventListener('click', () => removeDie(die.uid));
+    chipsRow.appendChild(el);
+  });
+}
+
+// ── ROLL ───────────────────────────────────────────────────────
+
+function rollAll() {
+  if (queue.length === 0) return;
+
+  clearAllTimers();
+  lastQueue = queue.map(d => ({ ...d }));
+
+  // Generate final values
+  const results = queue.map(die => ({
+    ...die,
+    value: Math.floor(Math.random() * die.max) + 1,
+  }));
+
+  queue = [];
+  setPhase('result');
+  totalSection.classList.add('hidden');
+  resultsRow.innerHTML = '';
+
+  // Build result card DOM
+  results.forEach(res => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('data-uid', res.uid);
+    card.innerHTML =
+      `<span class="res-type">${res.type}</span>` +
+      `<span class="res-value" id="rv${res.uid}">—</span>` +
+      `<span class="res-tag"  id="rt${res.uid}"></span>`;
+    resultsRow.appendChild(card);
+  });
+
+  // Animate slot machine per die
+  let lockedCount = 0;
+
+  results.forEach((res, i) => {
+    slotMachine(
+      $(`rv${res.uid}`),
+      res.value,
+      res.max,
+      i * STAGGER_MS,
+      () => {
+        // Mark critical / fail
+        const card = resultsRow.querySelector(`[data-uid="${res.uid}"]`);
+        const tagEl = $(`rt${res.uid}`);
+        if (res.value === res.max) {
+          card.classList.add('is-critical');
+          tagEl.textContent = '✦ CRÍTICO';
+        } else if (res.value === 1) {
+          card.classList.add('is-fail');
+          tagEl.textContent = 'FALHA';
+        }
+
+        lockedCount++;
+        if (lockedCount === results.length) onAllLocked(results);
+      }
+    );
+  });
+}
+
+function onAllLocked(results) {
+  // Total
+  const total = results.reduce((s, r) => s + r.value, 0);
+  totalValue.textContent = total;
+  // Re-trigger animation
+  totalSection.classList.remove('hidden');
+  void totalSection.offsetWidth;
+  totalSection.style.animation = 'none';
+  void totalSection.offsetWidth;
+  totalSection.style.animation = '';
+
+  // All-critical flash
+  if (results.length > 1 && results.every(r => r.value === r.max)) {
+    doFlash();
+  }
+
+  // History
+  pushHistory(results);
+}
+
+// ── SLOT MACHINE ANIMATION ─────────────────────────────────────
+
+function slotMachine(el, finalVal, max, delay, onLock) {
+  let step = 0;
+
+  function tick() {
+    if (step < ANIM_STEPS.length) {
+      el.textContent = Math.floor(Math.random() * max) + 1;
+      const t = setTimeout(tick, ANIM_STEPS[step]);
+      rollTimers.push(t);
+      step++;
+    } else {
+      el.textContent = finalVal;
+      // Scale pulse
+      el.style.transition = 'transform 100ms ease-out';
+      el.style.transform  = 'scale(1.12)';
+      const t1 = setTimeout(() => {
+        el.style.transform = 'scale(1.0)';
+        const t2 = setTimeout(() => {
+          el.style.transition = '';
+          el.style.transform  = '';
+        }, 110);
+        rollTimers.push(t2);
+      }, 100);
+      rollTimers.push(t1);
+      if (onLock) onLock();
+    }
+  }
+
+  const tStart = setTimeout(tick, delay);
+  rollTimers.push(tStart);
+}
+
+function clearAllTimers() {
+  rollTimers.forEach(clearTimeout);
+  rollTimers = [];
+}
+
+// ── FLASH ──────────────────────────────────────────────────────
+
+function doFlash() {
+  flashEl.style.transition = 'opacity 200ms ease';
+  flashEl.style.opacity    = '0.15';
+  const t = setTimeout(() => {
+    flashEl.style.transition = 'opacity 400ms ease';
+    flashEl.style.opacity    = '0';
+  }, 200);
+  rollTimers.push(t);
+}
+
+// ── ACTIONS ────────────────────────────────────────────────────
+
+function doNewRoll() {
+  clearAllTimers();
+  queue = [];
+  resultsRow.innerHTML = '';
+  chipsRow.innerHTML   = '';
+  totalSection.classList.add('hidden');
+  setPhase('empty');
+}
+
+function doReroll() {
+  if (!lastQueue || lastQueue.length === 0) return;
+  clearAllTimers();
+  queue = lastQueue.map(d => ({ ...d, uid: newUid() }));
+  resultsRow.innerHTML = '';
+  totalSection.classList.add('hidden');
+  rollAll();
+}
+
+// ── HISTORY ────────────────────────────────────────────────────
+
+function pushHistory(results) {
+  // Summarise dice counts
+  const counts = {};
+  results.forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
+  const diceStr  = Object.entries(counts).map(([t, n]) => `${n}× ${t}`).join(' + ');
+  const valsStr  = results.map(r => r.value).join(', ');
+  const total    = results.reduce((s, r) => s + r.value, 0);
+  const line     = `${diceStr}   →   ${valsStr}   =   ${total}`;
+
+  history.unshift(line);
+  if (history.length > 5) history.length = 5;
+  renderHistory();
+}
+
+function renderHistory() {
+  if (history.length === 0) {
+    historySection.classList.add('hidden');
+    return;
+  }
+  historySection.classList.remove('hidden');
+  historyList.innerHTML = '';
+  history.forEach((line, i) => {
+    const el = document.createElement('div');
+    el.className = 'history-entry';
+    el.textContent = line;
+    // Only animate the newest entry
+    if (i === 0) {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    } else {
+      el.style.opacity = '0.45';
+      el.style.animation = 'none';
+    }
+    historyList.appendChild(el);
+  });
+}
+
+// ── DICE BAR SHAKE ─────────────────────────────────────────────
+
+function shakeDiceBar() {
+  const bar = document.querySelector('.dice-bar');
+  bar.classList.remove('shaking');
+  void bar.offsetWidth;
+  bar.classList.add('shaking');
+  bar.addEventListener('animationend', () => bar.classList.remove('shaking'), { once: true });
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Dice bar button listeners
+  document.querySelectorAll('.dice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      const max  = parseInt(btn.dataset.max, 10);
+      addDie(type, max);
+    });
+  });
+
+  // Roll / action buttons
+  rollBtn   .addEventListener('click', rollAll);
+  $('btnNew')   .addEventListener('click', doNewRoll);
+  $('btnReroll').addEventListener('click', doReroll);
+
+  // Staggered entrance for dice bar icons
+  const dbtns = document.querySelectorAll('.dice-btn');
+  dbtns.forEach((btn, i) => {
+    btn.style.opacity   = '0';
+    btn.style.transform = 'translateY(8px)';
+  });
+
+  dbtns.forEach((btn, i) => {
+    const t = setTimeout(() => {
+      btn.style.transition = 'opacity 240ms ease, transform 240ms ease';
+      btn.style.opacity    = '';
+      btn.style.transform  = '';
+
+      setTimeout(() => {
+        btn.style.transition = '';
+      }, 260);
+    }, 80 + i * 60);
+    // Track these so they're cleaned up if needed (not roll timers, but harmless)
+    rollTimers.push(t);
+  });
+});
+</script>
+</body>
+</html>
