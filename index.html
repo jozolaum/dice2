@@ -6,21 +6,24 @@
   <title>Dado Arcano</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:           #0d0d0f;
-      --bg-bar:       #0f0f12;
-      --bg-card:      rgba(255,255,255,0.03);
-      --accent:       #7C3AED;
-      --accent-light: #A78BFA;
-      --gold:         #F59E0B;
-      --red:          #EF4444;
-      --text:         #E8E8F0;
-      --muted:        rgba(232,232,240,0.65);
-      --micro:        #8080A0;
-      --border-dim:   rgba(255,255,255,0.06);
-      --border-accent:rgba(124,58,237,0.15);
+      --parchment:    #f0e4b4;
+      --parchment-up: #e8d898;
+      --ink:          #1a1209;
+      --crimson:      #8b1a1a;
+      --gold:         #c8960c;
+      --brown:        #3d1f0a;
+      --muted:        #7a5c38;
+      --micro:        #9a7850;
+      --border:       rgba(61,31,10,0.42);
+      --border-dim:   rgba(61,31,10,0.18);
+      --shadow:       rgba(61,31,10,0.28);
+      --bar-bg:       #1a0d05;
+      --accent-light: #8b1a1a;
+      --red:          #8b1a1a;
+      --accent:       #8b1a1a;
     }
 
     *, *::before, *::after {
@@ -32,12 +35,17 @@
     html, body {
       height: 100%;
       overflow: hidden;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', system-ui, sans-serif;
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      background-color: #f0e4b4;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 80% 55% at 15% 20%, rgba(190,150,70,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 45% at 85% 80%, rgba(160,110,50,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 100% at 50% 50%, rgba(255,248,220,0.25) 0%, transparent 80%);
+      background-size: 200px 200px, auto, auto, auto;
+      background-repeat: repeat, no-repeat, no-repeat, no-repeat;
     }
-
-    /* ── APP SHELL ─────────────────────────────────────────── */
 
     #app {
       display: flex;
@@ -52,32 +60,44 @@
 
     .header {
       flex-shrink: 0;
-      padding: 22px 20px 10px;
+      padding: 18px 20px 10px;
       text-align: center;
+      border-bottom: 1px solid var(--border-dim);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 55%;
+      height: 1px;
+      background: var(--border-dim);
     }
 
     .header-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2.5rem;
+      font-family: 'Cinzel Decorative', 'Palatino Linotype', serif;
+      font-size: 2rem;
       font-weight: 400;
-      letter-spacing: 0.06em;
-      line-height: 1;
-      color: var(--text);
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+      color: var(--ink);
     }
 
     .header-title .arcano {
-      color: var(--accent-light);
+      color: var(--crimson);
       font-weight: 700;
-      font-style: italic;
     }
 
     .header-sub {
-      margin-top: 5px;
-      font-size: 0.58rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: rgba(167,139,250,0.35);
-      font-weight: 400;
+      margin-top: 4px;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.75rem;
+      font-style: italic;
+      letter-spacing: 0.2em;
+      color: var(--micro);
     }
 
     /* ── SCROLLABLE MAIN ───────────────────────────────────── */
@@ -90,7 +110,7 @@
       -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
-      padding: 0 16px 12px;
+      padding: 0 14px 12px;
     }
 
     /* ── QUEUE / RESULT CONTAINER ──────────────────────────── */
@@ -99,7 +119,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 20px 0;
+      padding: 18px 0;
       min-height: 200px;
     }
 
@@ -113,24 +133,22 @@
     }
 
     .empty-hint {
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      color: var(--micro);
       animation: breathe 3.2s ease-in-out infinite;
     }
 
     @keyframes breathe {
-      0%,100% { opacity: 0.3; }
-      50%      { opacity: 0.65; }
+      0%,100% { opacity: 0.35; }
+      50%      { opacity: 0.75; }
     }
 
     /* ── QUEUE STATE ───────────────────────────────────────── */
 
-    .state-queue {
-      display: flex;
-      flex-direction: column;
-    }
+    .state-queue { display: flex; flex-direction: column; }
 
     .chips-row {
       display: flex;
@@ -143,44 +161,48 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px 6px 8px;
-      background: rgba(124,58,237,0.10);
-      border: 1px solid rgba(124,58,237,0.28);
-      border-radius: 6px;
+      padding: 5px 10px 5px 7px;
+      background: rgba(240,228,180,0.7);
+      border: 1px solid var(--border);
+      border-radius: 3px;
       cursor: pointer;
       min-height: 36px;
       min-width: 44px;
-      animation: chip-in 180ms ease-out both;
-      transition: background 180ms, border-color 180ms;
+      animation: chip-in 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      transition: background 160ms, border-color 160ms, transform 120ms;
+      box-shadow: 0 1px 4px var(--shadow);
     }
 
-    .chip:hover, .chip:active {
-      background: rgba(239,68,68,0.12);
-      border-color: rgba(239,68,68,0.45);
+    .chip:hover {
+      border-color: var(--crimson);
+      background: rgba(240,220,170,0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px var(--shadow);
     }
+    .chip:active { transform: scale(0.97); }
 
     @keyframes chip-in {
       from { opacity: 0; transform: scale(0.82) translateY(5px); }
       to   { opacity: 1; transform: scale(1)    translateY(0);   }
     }
 
-    .chip svg {
-      width: 18px; height: 18px;
+    .chip-die-img {
       flex-shrink: 0;
-      color: var(--accent-light);
+      filter: brightness(0) saturate(100%) invert(13%) sepia(40%) saturate(700%) hue-rotate(5deg) brightness(0.85);
     }
 
     .chip-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      color: var(--accent-light);
+      font-family: 'EB Garamond', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      color: var(--brown);
       font-weight: 500;
       line-height: 1;
     }
 
     .chip-x {
-      font-size: 0.8rem;
-      color: rgba(232,232,240,0.65);
+      font-size: 0.9rem;
+      color: var(--muted);
       line-height: 1;
       margin-left: 2px;
     }
@@ -190,26 +212,31 @@
     .roll-btn {
       display: block;
       width: 100%;
-      max-width: 300px;
-      margin: 22px auto 0;
-      padding: 15px 20px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
+      max-width: 280px;
+      margin: 20px auto 0;
+      padding: 14px 20px;
+      background: var(--crimson);
+      color: #f5e8c4;
+      border: 1px solid #5a0f0f;
+      border-radius: 3px;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
       cursor: pointer;
       min-height: 50px;
-      animation: fade-up 240ms ease-out both;
-      transition: background 160ms, transform 120ms;
+      animation: fade-up 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      transition: background 160ms, transform 120ms, box-shadow 160ms;
+      box-shadow: inset 0 1px 2px rgba(255,200,150,0.15), 0 3px 10px rgba(61,31,10,0.35);
     }
 
-    .roll-btn:hover   { background: #6D28D9; }
-    .roll-btn:active  { transform: scale(0.97); }
+    .roll-btn:hover {
+      background: #a02020;
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 2px rgba(255,200,150,0.15), 0 4px 12px rgba(61,31,10,0.4);
+    }
+    .roll-btn:active  { transform: scale(0.97); box-shadow: 0 1px 4px rgba(61,31,10,0.3); }
+    .roll-btn:focus-visible { outline: 2px solid var(--crimson); outline-offset: 3px; }
 
     @keyframes fade-up {
       from { opacity: 0; transform: translateY(7px); }
@@ -218,10 +245,7 @@
 
     /* ── RESULT STATE ──────────────────────────────────────── */
 
-    .state-result {
-      display: flex;
-      flex-direction: column;
-    }
+    .state-result { display: flex; flex-direction: column; }
 
     .results-row {
       display: flex;
@@ -235,32 +259,44 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: var(--bg-card);
-      border: 1px solid var(--border-dim);
-      border-radius: 9px;
+      background: #eadc9e;
+      border: 1px solid var(--border);
+      border-radius: 3px;
       padding: 10px 14px 8px;
       min-width: 68px;
-      animation: card-in 220ms ease-out both;
-      transition: border-color 300ms, box-shadow 300ms, background 180ms, transform 180ms;
+      position: relative;
+      animation: card-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      transition: border-color 220ms, box-shadow 220ms, transform 180ms;
       cursor: default;
+      box-shadow: inset 0 1px 3px rgba(255,245,200,0.5), 0 2px 8px var(--shadow);
+    }
+
+    .result-card::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid rgba(61,31,10,0.12);
+      border-radius: 1px;
+      pointer-events: none;
     }
 
     .result-card:hover {
-      border-color: rgba(124,58,237,0.6);
-      background: rgba(255,255,255,0.05);
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: inset 0 0 12px rgba(124,58,237,0.15);
+      border-color: var(--brown);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: inset 0 1px 3px rgba(255,245,200,0.5), 0 4px 12px var(--shadow);
     }
 
     .result-card.is-critical {
       border-color: var(--gold);
-      box-shadow: inset 0 0 14px rgba(245,158,11,0.18);
+      box-shadow: inset 0 0 12px rgba(200,150,12,0.2), 0 2px 8px var(--shadow);
     }
+    .result-card.is-critical::before { border-color: rgba(200,150,12,0.25); }
 
     .result-card.is-fail {
-      border-color: var(--red);
-      box-shadow: inset 0 0 14px rgba(239,68,68,0.18);
+      border-color: var(--crimson);
+      box-shadow: inset 0 0 12px rgba(139,26,26,0.18), 0 2px 8px var(--shadow);
     }
+    .result-card.is-fail::before { border-color: rgba(139,26,26,0.2); }
 
     @keyframes card-in {
       from { opacity: 0; transform: translateY(9px) scale(0.94); }
@@ -268,19 +304,20 @@
     }
 
     .res-type {
-      font-size: 0.58rem;
-      letter-spacing: 0.16em;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--micro);
       margin-bottom: 3px;
     }
 
     .res-value {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2.4rem;
-      font-weight: 600;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2rem;
+      font-weight: 400;
       line-height: 1;
-      color: var(--text);
+      color: var(--ink);
       display: block;
       transition: transform 100ms ease-out, color 280ms;
       min-width: 1.8ch;
@@ -288,11 +325,12 @@
     }
 
     .result-card.is-critical .res-value { color: var(--gold); }
-    .result-card.is-fail     .res-value { color: var(--red);  }
+    .result-card.is-fail     .res-value { color: var(--crimson); }
 
     .res-tag {
-      font-size: 0.52rem;
-      letter-spacing: 0.12em;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       font-weight: 600;
       margin-top: 5px;
@@ -301,29 +339,53 @@
     }
 
     .result-card.is-critical .res-tag { color: var(--gold); }
-    .result-card.is-fail     .res-tag { color: var(--red);  }
+    .result-card.is-fail     .res-tag { color: var(--crimson); }
 
     /* Total */
 
     .total-section {
       text-align: center;
-      margin-top: 22px;
+      margin-top: 20px;
       animation: fade-up 320ms ease-out both;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-dim);
+      position: relative;
+    }
+
+    .total-section::before {
+      content: '✦';
+      position: absolute;
+      top: -0.65em;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--parchment);
+      padding: 0 8px;
+      font-size: 0.7rem;
+      color: var(--micro);
     }
 
     .total-label {
-      font-size: 0.58rem;
-      letter-spacing: 0.24em;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
       color: var(--micro);
       margin-bottom: 2px;
     }
 
+    .total-formula {
+      font-family: 'Special Elite', 'Courier New', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
     .total-value {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 3.8rem;
-      font-weight: 600;
-      color: var(--accent-light);
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 3.6rem;
+      font-weight: 700;
+      color: var(--crimson);
       line-height: 1.05;
     }
 
@@ -333,7 +395,7 @@
       display: flex;
       gap: 10px;
       justify-content: center;
-      margin-top: 16px;
+      margin-top: 14px;
       animation: fade-up 300ms 80ms ease-out both;
     }
 
@@ -345,99 +407,49 @@
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--border-dim);
-      border-radius: 7px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.64rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      border-radius: 3px;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
       cursor: pointer;
-      transition: border-color 160ms, color 160ms;
+      transition: border-color 160ms, color 160ms, transform 120ms;
     }
 
-    .ghost-btn:hover, .ghost-btn:active {
-      border-color: rgba(167,139,250,0.4);
-      color: var(--accent-light);
+    .ghost-btn:hover {
+      border-color: var(--crimson);
+      color: var(--crimson);
+      transform: translateY(-1px);
     }
+    .ghost-btn:active  { transform: scale(0.97); }
+    .ghost-btn:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
 
     /* ── HISTORY ───────────────────────────────────────────── */
 
     .history-section {
       flex-shrink: 0;
-      margin-top: 10px;
-      padding-top: 14px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid var(--border-dim);
     }
 
     .history-title {
-      font-size: 0.54rem;
-      letter-spacing: 0.26em;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
       color: var(--micro);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .history-entry {
-      font-family: 'DM Mono','Roboto Mono','Courier New', monospace;
+      font-family: 'Special Elite', 'Courier New', monospace;
       font-size: 0.62rem;
-      color: #A0A0B8;
+      color: var(--muted);
       padding: 3px 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       animation: fade-up 280ms ease-out both;
-    }
-
-    /* ── DICE BAR ──────────────────────────────────────────── */
-
-    .dice-bar {
-      flex-shrink: 0;
-      background: var(--bg-bar);
-      border-top: 1px solid rgba(124,58,237,0.12);
-      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    }
-
-    .dice-row {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      margin-bottom: 4px;
-    }
-    .dice-row:last-child { margin-bottom: 0; }
-
-    .dice-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      border-radius: 8px;
-      min-height: 72px;
-      min-width: 52px;
-      flex: 1;
-      max-width: 78px;
-      color: rgba(232,228,240,0.65);
-      transition: background 150ms, color 150ms, transform 120ms ease-out;
-      padding: 6px 4px;
-    }
-
-    .dice-btn:hover  { background: rgba(124,58,237,0.08); color: rgba(232,228,240,0.9); }
-    .dice-btn:active { transform: scale(0.9); background: rgba(124,58,237,0.13); }
-
-    .dice-btn svg {
-      width: 36px; height: 36px;
-      pointer-events: none;
-    }
-
-    .dice-btn-label {
-      font-size: 13px;
-      color: rgba(167,139,250,0.9);
-      letter-spacing: 0.08em;
-      font-weight: 500;
-      pointer-events: none;
-      line-height: 1;
     }
 
     /* ── BONUS ROW ──────────────────────────────────────────── */
@@ -460,6 +472,7 @@
       padding: 0 20px;
       opacity: 0;
       transform: translateY(12px);
+      border-top: 1px solid var(--border-dim);
       transition: opacity 280ms ease-out, transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
@@ -472,12 +485,13 @@
       flex: 1;
       height: 1px;
       max-width: 50px;
-      background: rgba(255,255,255,0.07);
+      background: var(--border-dim);
     }
 
     .bonus-label {
-      font-size: 12px;
-      letter-spacing: 0.22em;
+      font-family: 'EB Garamond', serif;
+      font-size: 13px;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--micro);
     }
@@ -486,41 +500,100 @@
       background: none;
       border: none;
       color: var(--muted);
-      font-size: 20px;
+      font-family: 'EB Garamond', serif;
+      font-size: 22px;
       cursor: pointer;
       min-width: 44px;
       min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
+      border-radius: 3px;
       line-height: 1;
-      transition: color 140ms;
+      transition: color 140ms, transform 120ms;
     }
 
-    .bonus-btn:hover, .bonus-btn:active { color: var(--accent-light); }
+    .bonus-btn:hover  { color: var(--crimson); }
+    .bonus-btn:active { transform: scale(0.92); color: var(--crimson); }
+    .bonus-btn:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
 
     .bonus-num {
-      font-family: 'DM Mono', 'Courier New', monospace;
-      font-size: 22px;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 20px;
+      font-weight: 400;
       min-width: 48px;
       text-align: center;
       color: var(--micro);
       transition: color 200ms;
     }
 
-    .bonus-num.is-positive { color: var(--accent-light); }
-    .bonus-num.is-negative { color: var(--red); }
+    .bonus-num.is-positive { color: var(--gold); }
+    .bonus-num.is-negative { color: var(--crimson); }
 
-    /* Total formula line (shown when bonus ≠ 0) */
+    /* ── DICE BAR ──────────────────────────────────────────── */
 
-    .total-formula {
-      font-family: 'DM Mono', 'Courier New', monospace;
-      font-size: 0.76rem;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      margin-bottom: 2px;
+    .dice-bar {
+      flex-shrink: 0;
+      background: var(--bar-bg);
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent, transparent 60px,
+        rgba(255,200,100,0.015) 60px, rgba(255,200,100,0.015) 61px
+      );
+      border-top: 2px solid rgba(200,150,12,0.35);
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     }
+
+    .dice-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .dice-row:last-child { margin-bottom: 0; }
+
+    .dice-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      min-height: 72px;
+      min-width: 52px;
+      flex: 1;
+      max-width: 78px;
+      transition: background 150ms, transform 120ms ease-out;
+      padding: 6px 4px;
+    }
+
+    .dice-btn:hover  { background: rgba(200,150,12,0.12); }
+    .dice-btn:active { transform: scale(0.92); background: rgba(200,150,12,0.18); }
+    .dice-btn:focus-visible { outline: 2px solid rgba(200,150,12,0.6); outline-offset: 2px; }
+
+    .dice-icon {
+      width: 36px; height: 36px;
+      pointer-events: none;
+      filter: brightness(0) invert(1) sepia(0.4) brightness(0.82);
+      transition: filter 150ms;
+    }
+
+    .dice-btn:hover  .dice-icon { filter: brightness(0) invert(1) sepia(1) saturate(2.5) hue-rotate(5deg) brightness(0.88); }
+    .dice-btn:active .dice-icon { filter: brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(5deg); }
+
+    .dice-btn-label {
+      font-family: 'EB Garamond', serif;
+      font-size: 13px;
+      color: rgba(210,175,110,0.85);
+      letter-spacing: 0.1em;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .dice-btn:hover .dice-btn-label { color: rgba(220,185,120,1); }
 
     /* ── FLASH OVERLAY ─────────────────────────────────────── */
 
@@ -556,7 +629,7 @@
   <!-- ── HEADER ─────────────────────────────────────────────── -->
   <header class="header" aria-label="Dado Arcano">
     <div class="header-title">DADO <span class="arcano">ARCANO</span></div>
-    <div class="header-sub">◆ arcano ◆</div>
+    <div class="header-sub">❧ arcano ❧</div>
   </header>
 
   <!-- ── SCROLLABLE MAIN ────────────────────────────────────── -->
@@ -615,82 +688,33 @@
   <div class="dice-bar" role="toolbar" aria-label="Barra de dados">
     <div class="dice-row">
       <button class="dice-btn" data-type="D4"   data-max="4"   aria-label="Adicionar D4">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="50,8 92,78 8,78"/>
-          <line x1="50" y1="8"  x2="50" y2="78"/>
-          <line x1="8"  y1="78" x2="71" y2="43"/>
-          <line x1="92" y1="78" x2="29" y2="43"/>
-        </svg>
+        <img src="assets/dice/d4.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D4</span>
       </button>
       <button class="dice-btn" data-type="D6"   data-max="6"   aria-label="Adicionar D6">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="50,12 82,30 50,48 18,30"/>
-          <polygon points="18,30 50,48 50,86 18,68"/>
-          <polygon points="82,30 50,48 50,86 82,68"/>
-        </svg>
+        <img src="assets/dice/d6.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D6</span>
       </button>
       <button class="dice-btn" data-type="D8"   data-max="8"   aria-label="Adicionar D8">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="50,8 85,52 15,52"/>
-          <polygon points="50,92 85,52 15,52"/>
-          <line x1="50" y1="8"  x2="50" y2="52"/>
-          <line x1="50" y1="92" x2="50" y2="52"/>
-        </svg>
+        <img src="assets/dice/d8.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D8</span>
       </button>
       <button class="dice-btn" data-type="D10"  data-max="10"  aria-label="Adicionar D10">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <line x1="50" y1="8"  x2="78" y2="38"/>
-          <line x1="50" y1="8"  x2="88" y2="58"/>
-          <line x1="50" y1="8"  x2="50" y2="68"/>
-          <line x1="50" y1="8"  x2="12" y2="58"/>
-          <line x1="50" y1="8"  x2="22" y2="38"/>
-          <polygon points="22,38 78,38 88,58 50,68 12,58"/>
-          <line x1="22" y1="38" x2="50" y2="92"/>
-          <line x1="78" y1="38" x2="50" y2="92"/>
-          <line x1="88" y1="58" x2="50" y2="92"/>
-          <line x1="50" y1="68" x2="50" y2="92"/>
-          <line x1="12" y1="58" x2="50" y2="92"/>
-        </svg>
+        <img src="assets/dice/d10.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D10</span>
       </button>
     </div>
     <div class="dice-row">
       <button class="dice-btn" data-type="D12"  data-max="12"  aria-label="Adicionar D12">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="50,8 72,14 88,32 88,58 72,76 50,82 28,76 12,58 12,32 28,14"/>
-          <polygon points="50,22 66,34 60,54 40,54 34,34"/>
-        </svg>
+        <img src="assets/dice/d12.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D12</span>
       </button>
       <button class="dice-btn" data-type="D20"  data-max="20"  aria-label="Adicionar D20">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="25,9 75,9 96,50 75,91 25,91 4,50"/>
-          <line x1="50" y1="9"  x2="4"  y2="50"/>
-          <line x1="50" y1="9"  x2="96" y2="50"/>
-          <line x1="50" y1="9"  x2="50" y2="91"/>
-          <line x1="50" y1="91" x2="25" y2="9"/>
-          <line x1="50" y1="91" x2="75" y2="9"/>
-          <line x1="4"  y1="50" x2="75" y2="91"/>
-          <line x1="96" y1="50" x2="25" y2="91"/>
-        </svg>
+        <img src="assets/dice/d20.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D20</span>
       </button>
       <button class="dice-btn" data-type="D100" data-max="100" aria-label="Adicionar D100">
-        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <circle cx="50" cy="50" r="40"/>
-          <circle cx="50" cy="50" r="28"/>
-          <line x1="50" y1="10" x2="50" y2="22"/>
-          <line x1="50" y1="78" x2="50" y2="90"/>
-          <line x1="10" y1="50" x2="22" y2="50"/>
-          <line x1="78" y1="50" x2="90" y2="50"/>
-          <line x1="22" y1="22" x2="30" y2="30"/>
-          <line x1="78" y1="22" x2="70" y2="30"/>
-          <line x1="22" y1="78" x2="30" y2="70"/>
-          <line x1="78" y1="78" x2="70" y2="70"/>
-        </svg>
+        <img src="assets/dice/d100.svg" width="36" height="36" class="dice-icon" alt="">
         <span class="dice-btn-label">D100</span>
       </button>
     </div>
@@ -711,18 +735,9 @@ const ANIM_STEPS  = [40, 60, 90, 130, 180, 240, 320, 420, 560];
 const MAX_QUEUE   = 10;
 const STAGGER_MS  = 300;
 
-const SVG_INNER = {
-  D4:   `<polygon points="50,8 92,78 8,78"/><line x1="50" y1="8" x2="50" y2="78"/><line x1="8" y1="78" x2="71" y2="43"/><line x1="92" y1="78" x2="29" y2="43"/>`,
-  D6:   `<polygon points="50,12 82,30 50,48 18,30"/><polygon points="18,30 50,48 50,86 18,68"/><polygon points="82,30 50,48 50,86 82,68"/>`,
-  D8:   `<polygon points="50,8 85,52 15,52"/><polygon points="50,92 85,52 15,52"/><line x1="50" y1="8" x2="50" y2="52"/><line x1="50" y1="92" x2="50" y2="52"/>`,
-  D10:  `<line x1="50" y1="8" x2="78" y2="38"/><line x1="50" y1="8" x2="88" y2="58"/><line x1="50" y1="8" x2="50" y2="68"/><line x1="50" y1="8" x2="12" y2="58"/><line x1="50" y1="8" x2="22" y2="38"/><polygon points="22,38 78,38 88,58 50,68 12,58"/><line x1="22" y1="38" x2="50" y2="92"/><line x1="78" y1="38" x2="50" y2="92"/><line x1="88" y1="58" x2="50" y2="92"/><line x1="50" y1="68" x2="50" y2="92"/><line x1="12" y1="58" x2="50" y2="92"/>`,
-  D12:  `<polygon points="50,8 72,14 88,32 88,58 72,76 50,82 28,76 12,58 12,32 28,14"/><polygon points="50,22 66,34 60,54 40,54 34,34"/>`,
-  D20:  `<polygon points="25,9 75,9 96,50 75,91 25,91 4,50"/><line x1="50" y1="9" x2="4" y2="50"/><line x1="50" y1="9" x2="96" y2="50"/><line x1="50" y1="9" x2="50" y2="91"/><line x1="50" y1="91" x2="25" y2="9"/><line x1="50" y1="91" x2="75" y2="9"/><line x1="4" y1="50" x2="75" y2="91"/><line x1="96" y1="50" x2="25" y2="91"/>`,
-  D100: `<circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="28"/><line x1="50" y1="10" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="90"/><line x1="10" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="30" y2="30"/><line x1="78" y1="22" x2="70" y2="30"/><line x1="22" y1="78" x2="30" y2="70"/><line x1="78" y1="78" x2="70" y2="70"/>`,
-};
-
 function makeSVG(type, size) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">${SVG_INNER[type] || ''}</svg>`;
+  const file = type.toLowerCase();
+  return `<img src="assets/dice/${file}.svg" width="${size}" height="${size}" class="chip-die-img" aria-hidden="true" alt="">`;
 }
 
 // ── STATE ──────────────────────────────────────────────────────
@@ -845,10 +860,10 @@ function renderChips() {
     bChip.className = 'chip';
     bChip.setAttribute('role', 'listitem');
     bChip.setAttribute('aria-label', `Bônus ${isPos ? '+' : '−'}${Math.abs(bonus)}`);
-    bChip.style.borderColor = isPos ? 'rgba(124,58,237,0.4)' : 'rgba(239,68,68,0.4)';
-    bChip.style.background  = isPos ? 'rgba(124,58,237,0.08)' : 'rgba(239,68,68,0.08)';
+    bChip.style.borderColor = isPos ? 'rgba(200,150,12,0.5)' : 'rgba(139,26,26,0.45)';
+    bChip.style.background  = isPos ? 'rgba(200,150,12,0.08)' : 'rgba(139,26,26,0.07)';
     bChip.style.cursor = 'default';
-    const col = isPos ? 'var(--accent-light)' : 'var(--red)';
+    const col = isPos ? 'var(--gold)' : 'var(--crimson)';
     bChip.innerHTML = `<span class="chip-label" style="color:${col}">${isPos ? '+' : '−'}${Math.abs(bonus)}</span>`;
     chipsRow.appendChild(bChip);
   }
@@ -892,7 +907,7 @@ function rollAll() {
     bCard.className = 'result-card';
     bCard.setAttribute('role', 'listitem');
     const isPos = bonus > 0;
-    const col  = isPos ? 'var(--accent-light)' : 'var(--red)';
+    const col  = isPos ? 'var(--gold)' : 'var(--crimson)';
     const sign = isPos ? '+' : '−';
     bCard.innerHTML =
       `<span class="res-type">Bônus</span>` +
@@ -936,7 +951,7 @@ function onAllLocked(results) {
   // Bonus formula line
   if (bonus !== 0) {
     const op  = bonus > 0 ? '+' : '−';
-    const col = bonus > 0 ? 'var(--accent-light)' : 'var(--red)';
+    const col = bonus > 0 ? 'var(--gold)' : 'var(--crimson)';
     totalFormula.innerHTML = `${diceTotal} <span style="color:${col}">${op}${Math.abs(bonus)}</span> = ${grandTotal}`;
     totalFormula.classList.remove('hidden');
   } else {
@@ -1049,7 +1064,7 @@ function pushHistory(results) {
 
   let bonusPart = '';
   if (bonus !== 0) {
-    const col = bonus > 0 ? 'var(--accent-light)' : 'var(--red)';
+    const col = bonus > 0 ? 'var(--gold)' : 'var(--crimson)';
     const op  = bonus > 0 ? '+' : '−';
     bonusPart = ` + bônus <span style="color:${col}">${op}${Math.abs(bonus)}</span>`;
   }
